@@ -1,0 +1,41 @@
+#map {
+    height: 780px;
+    width: 82%;
+    margin-left: 340px; /* Adjust this value as needed */
+}
+
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px; /* Adjust width as needed */
+    height: 97%;
+    overflow-y: auto; /* Enable vertical scrolling */
+    background-color: #f0f0f0; /* Sidebar background color */
+    padding: 20px; /* Add padding for better appearance */
+}
+
+body { background-color: #F1F3F4ff; }
+
+#building-list p {
+    margin: 0 0 10px 0; /* Adjust spacing between building names */
+    cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+#building-list p:hover {
+    color: blue; /* Change text color on hover */
+}
+
+#sidebar {
+    float: left;
+    width: 300px; /* Adjust the width as needed */
+}
+
+#path-form {
+    margin-left: 345px; /* Adjust the margin to move the form to the right */
+}
+
+/* Additional styling for the button */
+button[type="submit"] {
+    margin-top: 10px; /* Add some top margin to separate from the select */
+}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Campus GPS</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <div id="map"></div>
+    <div id="sidebar">
+        <h3>Buildings</h3>
+        <div id="building-list"></div>
+    </div>
+    <form id="path-form">
+        <input type="hidden" id="start_lat" name="start_lat">
+        <input type="hidden" id="start_lng" name="start_lng">
+        <input type="hidden" id="dest_lat" name="dest_lat">
+        <input type="hidden" id="dest_lng" name="dest_lng">
+        <label for="start_location">Start Location:</label>
+        <input type="text" id="start_location" name="start_location" placeholder="Enter start location">
+        <br>
+        <label for="dest_location">Destination Location:</label>
+        <input type="text" id="dest_location" name="dest_location" placeholder="Enter destination location">
+        <br>
+        <label for="algorithm">Algorithm:</label>
+        <select id="algorithm" name="algorithm">
+            <option value="bfs">BFS</option>
+            <option value="dfs">DFS</option>
+            <option value="dijkstra">Dijkstra</option>
+        </select>
+        <br>
+        <button type="submit">Run</button>
+    </form>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD1v05Kg5BB7a16ib3-gwY5cE1U8FrWRFU&callback=initMap&libraries=geometry" async defer></script>
+    <script src="script.js"></script>
+</body>
+</html>
