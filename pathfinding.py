@@ -1,25 +1,6 @@
 import json
-from collections import deque
+from collections import deque, defaultdict
 
-# Load buildings and edges data from JSON files
-with open("buildings.JSON", "r") as f:
-    buildings = json.load(f)
-
-with open("edges.JSON", "r") as f:
-    edges = json.load(f)
-
-# Create a dictionary to map building names to their node IDs
-building_ids = {building["name"]: building["node_id"] for building in buildings}
-
-# Create a dictionary to map node IDs to building names
-building_names = {building["node_id"]: building["name"] for building in buildings}
-
-# Build a graph from the edges data
-graph = {}
-for edge in edges:
-    source = edge["source"]
-    targets = {target["id"]: target["distance"] for target in edge["targets"]}
-    graph[source] = targets
 
 def bfs(graph, start, end):
     visited = set()
@@ -38,22 +19,110 @@ def bfs(graph, start, end):
 
     return None
 
-# Get input from the user
-start_building_name = input("Enter the name of the start building: ")
-end_building_name = input("Enter the name of the destination building: ")
 
-# Check if the provided building names are valid
-if start_building_name not in building_ids or end_building_name not in building_ids:
-    print("Invalid building names.")
-else:
-    start_node_id = building_ids[start_building_name]
-    end_node_id = building_ids[end_building_name]
+def dfs(graph, start, end, visited=None, path=None):
+    if visited is None:
+        visited = set()
+    if path is None:
+        path = []
 
-    # Find the shortest path
-    shortest_path = bfs(graph, start_node_id, end_node_id)
+    visited.add(start)
+    path = path + [start]
 
-    if shortest_path:
-        path_names = [building_names[node_id] for node_id in shortest_path]
-        print("Shortest path:", " -> ".join(path_names))
+    if start == end:
+        return path
+
+    for neighbor, _ in graph.get(start, {}).items():
+        if neighbor not in visited:
+            new_path = dfs(graph, neighbor, end, visited, path)
+            if new_path:
+                return new_path
+
+    return None
+
+
+def dijkstra(graph, start, end):
+    distances = defaultdict(lambda: float('inf'))
+    distances[start] = 0
+    visited = set()
+    queue = [(0, [start])]  # Queue now contains both distance and path
+
+    while queue:
+        current_distance, path = queue.pop(0)
+        current_node = path[-1]
+
+        if current_node == end:
+            return current_distance, path  # Return both distance and path
+
+        if current_node in visited:
+            continue
+
+        visited.add(current_node)
+
+        for neighbor, weight in graph.get(current_node, {}).items():
+            distance = current_distance + weight
+            new_path = path + [neighbor]  # Extend the current path
+            if distance < distances[neighbor]:
+                distances[neighbor] = distance
+                queue.append((distance, new_path))
+
+    return None, None  # If no path is found
+
+
+
+def main():
+    # Load data from JSON files
+    with open('edges.json', 'r') as f:
+        edges_data = json.load(f)
+
+    with open('buildings.json', 'r') as f:
+        buildings_data = json.load(f)
+
+    # Create a dictionary of node names and their corresponding IDs
+    name_to_id = {building['name']: building['node_id'] for building in buildings_data}
+
+    # Create a graph from the edges data
+    graph = defaultdict(dict)
+
+    for edge in edges_data:
+        source_id = edge['source']
+        for target in edge['targets']:
+            target_id = target['id']
+            weight = target['distance']
+            graph[source_id][target_id] = weight
+
+    # Get start and end building names from the user
+    start_building_name = input("Enter the name of the start building: ")
+    end_building_name = input("Enter the name of the destination building: ")
+
+    # Get start and end node IDs
+    start_node_id = name_to_id.get(start_building_name)
+    end_node_id = name_to_id.get(end_building_name)
+
+    # Perform pathfinding
+    if start_node_id is not None and end_node_id is not None:
+        bfs_path = bfs(graph, start_node_id, end_node_id)
+        dfs_path = dfs(graph, start_node_id, end_node_id)
+        dijkstra_distance = dijkstra(graph, start_node_id, end_node_id)
+
+        # Print the results
+        if bfs_path:
+            print("Shortest path (BFS):", ' -> '.join([buildings_data[node_id - 1]['name'] for node_id in bfs_path]))
+        else:
+            print("No path found (BFS)")
+
+        if dfs_path:
+            print("Shortest path (DFS):", ' -> '.join([buildings_data[node_id - 1]['name'] for node_id in dfs_path]))
+        else:
+            print("No path found (DFS)")
+
+        if dijkstra_distance is not None:
+            print("Shortest distance (Dijkstra):", dijkstra_distance)
+        else:
+            print("No path found (Dijkstra)")
     else:
-        print("No path found between the specified buildings.")
+        print("Building not found in the dataset.")
+
+
+if __name__ == "__main__":
+    main()

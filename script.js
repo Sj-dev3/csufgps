@@ -138,6 +138,4 @@ function initMap() {
         map.panTo(latLng);
         map.setZoom(18);
     }
-
-
 }
