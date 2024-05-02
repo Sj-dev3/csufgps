@@ -1,6 +1,10 @@
-import json
 from collections import deque, defaultdict
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import json
 
+app = Flask(__name__)
+CORS(app)
 
 def bfs(graph, start, end):
     visited = set()
@@ -69,8 +73,19 @@ def dijkstra(graph, start, end):
     return None, None  # If no path is found
 
 
+@app.route("/pathfinding", methods=["POST"])
+def pathfinding():
+    data = request.get_json()
+    start_building_name = data.get("start_location")
+    end_building_name = data.get("dest_location")
+    algorithm = data.get("algorithm")  # Retrieve the selected algorithm
 
-def main():
+    # Call the main function with start and end building names and the selected algorithm
+    result = main(start_building_name, end_building_name, algorithm)
+    return result
+
+
+def main(start_building_name, end_building_name, algorithm):
     # Load data from JSON files
     with open('edges.json', 'r') as f:
         edges_data = json.load(f)
@@ -91,38 +106,32 @@ def main():
             weight = target['distance']
             graph[source_id][target_id] = weight
 
-    # Get start and end building names from the user
-    start_building_name = input("Enter the name of the start building: ")
-    end_building_name = input("Enter the name of the destination building: ")
-
     # Get start and end node IDs
     start_node_id = name_to_id.get(start_building_name)
     end_node_id = name_to_id.get(end_building_name)
 
-    # Perform pathfinding
-    if start_node_id is not None and end_node_id is not None:
-        bfs_path = bfs(graph, start_node_id, end_node_id)
-        dfs_path = dfs(graph, start_node_id, end_node_id)
-        dijkstra_distance = dijkstra(graph, start_node_id, end_node_id)
+    # Perform pathfinding based on the selected algorithm
+    if algorithm == 'bfs':
+        path = bfs(graph, start_node_id, end_node_id)
+    elif algorithm == 'dfs':
+        path = dfs(graph, start_node_id, end_node_id)
+    elif algorithm == 'dijkstra':
+        distance, path = dijkstra(graph, start_node_id, end_node_id)
+        result_data = {
+            'distance': distance,
+            'path': path
+        }
+        return jsonify(result_data)
 
-        # Print the results
-        if bfs_path:
-            print("Shortest path (BFS):", ' -> '.join([buildings_data[node_id - 1]['name'] for node_id in bfs_path]))
-        else:
-            print("No path found (BFS)")
-
-        if dfs_path:
-            print("Shortest path (DFS):", ' -> '.join([buildings_data[node_id - 1]['name'] for node_id in dfs_path]))
-        else:
-            print("No path found (DFS)")
-
-        if dijkstra_distance is not None:
-            print("Shortest distance (Dijkstra):", dijkstra_distance)
-        else:
-            print("No path found (Dijkstra)")
+    # Construct JSON object containing the path
+    if path:
+        result_data = {
+            'path': path
+        }
+        return jsonify(result_data)
     else:
-        print("Building not found in the dataset.")
+        return jsonify({"error": "No path found."})
 
 
 if __name__ == "__main__":
-    main()
+    app.run(debug=True)  # Run the Flask app

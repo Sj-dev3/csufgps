@@ -37,50 +37,65 @@ function initMap() {
             });
 
             // Load the edges and draw polylines
-            loadEdgesAndDrawPolylines(map);
+            //loadEdgesAndDrawPolylines(map);
 
             // Render buildings list
             populateSidebar(data); // Call the populateSidebar function here
         })
         .catch(error => console.error('Error fetching building data:', error));
 
-    // Load the edges.JSON file and draw polylines
-    function loadEdgesAndDrawPolylines(map) {
-        // Load the edges.JSON file
-        fetch('edges.json')
+
+    // Define a global variable to store the reference to the polyline
+    var pathPolyline;
+
+    // Function to load path data, draw polylines, and zoom onto marker
+    function loadPathAndDrawPolylines(map, path) {
+        // Clear existing polyline if it exists
+        if (pathPolyline) {
+            pathPolyline.setMap(null); // Remove polyline from the map
+        }
+
+        // Define an array to store LatLng objects representing the path
+        var pathCoordinates = [];
+
+        // Load the buildings.JSON file
+        fetch('buildings.json')
             .then(response => response.json())
             .then(data => {
-                // Parse the JSON data and draw polylines
-                data.forEach(edge => {
-                    // Retrieve source and target node IDs
-                    const sourceNodeId = edge.source;
-                    const targetNodeIds = edge.targets.map(target => target.id);
+                // Iterate over the path array and get the coordinates of each node
+                path.forEach(nodeId => {
+                    // Find the node in the data
+                    const node = data.find(item => item.node_id === nodeId);
+                    if (node) {
+                        // Create a LatLng object using the node's coordinates
+                        var latLng = new google.maps.LatLng(node.coordinates.latitude, node.coordinates.longitude);
+                        // Add the LatLng object to the pathCoordinates array
+                        pathCoordinates.push(latLng);
 
-                    // Retrieve coordinates of source node
-                    getNodeCoordinates(sourceNodeId)
-                        .then(sourceNodeCoords => {
-                            // Retrieve coordinates of target nodes and draw polyline
-                            targetNodeIds.forEach(targetNodeId => {
-                                getNodeCoordinates(targetNodeId)
-                                    .then(targetNodeCoords => {
-                                        // Draw polyline connecting source to target node
-                                        const polyline = new google.maps.Polyline({
-                                            path: [sourceNodeCoords, targetNodeCoords],
-                                            geodesic: true,
-                                            strokeColor: '#FF0000', // Set the color as needed
-                                            strokeOpacity: 1.0,
-                                            strokeWeight: 2, // Set the weight as needed
-                                            map: map // Your Google Maps map object
-                                        });
-                                    })
-                                    .catch(error => console.error(`Error fetching coordinates for target node ${targetNodeId}:`, error));
-                            });
-                        })
-                        .catch(error => console.error(`Error fetching coordinates for source node ${sourceNodeId}:`, error));
+                        // Zoom onto marker corresponding to the start node
+                        if (nodeId === path[0]) {
+                            zoomToMarker(nodeId, node.coordinates.latitude, node.coordinates.longitude);
+                        }
+                    } else {
+                        console.error(`Node with ID ${nodeId} not found.`);
+                    }
                 });
+
+                // Draw polyline representing the path
+                pathPolyline = new google.maps.Polyline({
+                    path: pathCoordinates,
+                    geodesic: true,
+                    strokeColor: '#0000FF', // Blue color
+                    strokeOpacity: 1.0,
+                    strokeWeight: 3, // Set the weight as needed
+                    map: map // Your Google Maps map object
+                });
+
             })
-            .catch(error => console.error('Error fetching edges.JSON:', error));
+            .catch(error => console.error('Error fetching buildings.JSON:', error));
     }
+
+
 
     // Function to retrieve coordinates of a node by its ID
     function getNodeCoordinates(nodeId) {
@@ -101,8 +116,6 @@ function initMap() {
             })
             .catch(error => console.error('Error fetching buildings.JSON:', error));
     }
-
-
 
     // Function to render the list of buildings in the sidebar
     function populateSidebar(buildings) {
@@ -137,5 +150,46 @@ function initMap() {
         // Pan the map to the LatLng position and set zoom level
         map.panTo(latLng);
         map.setZoom(18);
+    }
+
+    // Call the runPathfinding function when the "Run" button is clicked
+    document.querySelector('button[type="button"]').addEventListener('click', runPathfinding);
+
+    // Define the runPathfinding function
+    function runPathfinding() {
+        var startLocation = document.getElementById("start_location").value;
+        var destLocation = document.getElementById("dest_location").value;
+        var algorithm = document.getElementById("algorithm").value;
+
+        // Make an AJAX request to the Python backend
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://localhost:5000/pathfinding", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        xhr.onreadystatechange = function() {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            if (xhr.status === 200) {
+                var result = JSON.parse(xhr.responseText);
+                console.log(result); // Process the result as needed
+                var path = result.path; // Assuming the path is an array of node IDs
+                if (path) {
+                    loadPathAndDrawPolylines(map, path); // Call the function to draw the path
+                } else {
+                    console.error("Error: Path data not found in response.");
+                }
+            } else {
+                console.error("Error:", xhr.status);
+            }
+        }
+    };
+
+
+        var data = {
+            start_location: startLocation,
+            dest_location: destLocation,
+            algorithm: algorithm
+        };
+
+        xhr.send(JSON.stringify(data));
     }
 }
