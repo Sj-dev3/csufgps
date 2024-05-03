@@ -37,13 +37,50 @@ function initMap() {
             });
 
             // Load the edges and draw polylines
-            //loadEdgesAndDrawPolylines(map);
+            loadEdgesAndDrawPolylines(map);
 
             // Render buildings list
             populateSidebar(data); // Call the populateSidebar function here
         })
         .catch(error => console.error('Error fetching building data:', error));
 
+        // Load the edges.JSON file and draw polylines
+    function loadEdgesAndDrawPolylines(map) {
+        // Load the edges.JSON file
+        fetch('/edges.json')
+            .then(response => response.json())
+            .then(data => {
+                // Parse the JSON data and draw polylines
+                data.forEach(edge => {
+                    // Retrieve source and target node IDs
+                    const sourceNodeId = edge.source;
+                    const targetNodeIds = edge.targets.map(target => target.id);
+
+                    // Retrieve coordinates of source node
+                    getNodeCoordinates(sourceNodeId)
+                        .then(sourceNodeCoords => {
+                            // Retrieve coordinates of target nodes and draw polyline
+                            targetNodeIds.forEach(targetNodeId => {
+                                getNodeCoordinates(targetNodeId)
+                                    .then(targetNodeCoords => {
+                                        // Draw polyline connecting source to target node
+                                        const polyline = new google.maps.Polyline({
+                                            path: [sourceNodeCoords, targetNodeCoords],
+                                            geodesic: true,
+                                            strokeColor: '#FF0000', // Set the color as needed
+                                            strokeOpacity: 1.0,
+                                            strokeWeight: 2, // Set the weight as needed
+                                            map: map // Your Google Maps map object
+                                        });
+                                    })
+                                    .catch(error => console.error(`Error fetching coordinates for target node ${targetNodeId}:`, error));
+                            });
+                        })
+                        .catch(error => console.error(`Error fetching coordinates for source node ${sourceNodeId}:`, error));
+                });
+            })
+            .catch(error => console.error('Error fetching edges.JSON:', error));
+    }
 
     // Define a global variable to store the reference to the polyline
     var pathPolyline;
@@ -87,7 +124,7 @@ function initMap() {
                     geodesic: true,
                     strokeColor: '#0000FF', // Blue color
                     strokeOpacity: 1.0,
-                    strokeWeight: 3, // Set the weight as needed
+                    strokeWeight: 5, // Set the weight as needed
                     map: map // Your Google Maps map object
                 });
 

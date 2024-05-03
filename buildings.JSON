@@ -82,6 +82,10 @@
     {"node_id": 81, "name": "Intermediary Node 15", "coordinates": {"latitude": 33.88535483989763, "longitude": -117.88847819680062}},
     {"node_id": 82, "name": "Intermediary Node 16", "coordinates": {"latitude": 33.88540382615846, "longitude": -117.88759843224396}},
     {"node_id": 83, "name": "Intermediary Node 17", "coordinates": {"latitude": 33.884186190605114, "longitude": -117.88193505170953}},
-    {"node_id": 84, "name": "Intermediary Node 18", "coordinates": {"latitude": 33.87997397375244, "longitude": -117.88493289013482}}
+    {"node_id": 84, "name": "Intermediary Node 18", "coordinates": {"latitude": 33.87997397375244, "longitude": -117.88493289013482}},
+    {"node_id": 85, "name": "Intermediary Node 19", "coordinates": {"latitude": 33.87848964023246, "longitude": -117.88298509131059}},
+    {"node_id": 86, "name": "Intermediary Node 20", "coordinates": {"latitude": 33.87952869981681, "longitude": -117.8898422196868}},
+    {"node_id": 87, "name": "Intermediary Node 21", "coordinates": {"latitude": 33.886951251107476, "longitude": -117.8880875433839}},
+    {"node_id": 88, "name": "Intermediary Node 22", "coordinates": {"latitude": 33.88756579244583, "longitude": -117.88759401693646}},
+    {"node_id": 89, "name": "Intermediary Node 23", "coordinates": {"latitude": 33.887752825886665, "longitude": -117.88567891977759}}
 ]
-
