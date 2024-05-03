@@ -128,6 +128,27 @@ function initMap() {
                     map: map // Your Google Maps map object
                 });
 
+                // Calculate total distance and duration using Google Maps Distance Matrix API
+                var service = new google.maps.DistanceMatrixService();
+                service.getDistanceMatrix({
+                    origins: [pathCoordinates[0]], // Ensure origins is an array of LatLng objects
+                    destinations: [pathCoordinates[pathCoordinates.length - 1]], // Ensure destinations is an array of LatLng objects
+                    travelMode: 'WALKING',
+                }, function(response, status) {
+                    if (status === 'OK') {
+                        var distance = response.rows[0].elements[0].distance.value; // Total distance in meters
+                        var duration = response.rows[0].elements[0].duration.text; // Total duration in textual format (e.g., "1 hour 30 mins")
+
+                        // Update path-details section with total distance and duration
+                        var distanceElement = document.getElementById("distance-count");
+                        var timeElement = document.getElementById("time-display");
+                        distanceElement.textContent = distance + " meters";
+                        timeElement.textContent = duration;
+
+                    } else {
+                        console.error('Error calculating distance:', status);
+                    }
+                });
             })
             .catch(error => console.error('Error fetching buildings.JSON:', error));
     }
@@ -192,6 +213,10 @@ function initMap() {
     // Call the runPathfinding function when the "Run" button is clicked
     document.querySelector('button[type="button"]').addEventListener('click', runPathfinding);
 
+    // Define global variables to store distance and node count
+    var distanceCounter = document.getElementById("distance-counter");
+    var nodeCounter = document.getElementById("node-counter");
+
     // Define the runPathfinding function
     function runPathfinding() {
         var startLocation = document.getElementById("start_location").value;
@@ -210,6 +235,9 @@ function initMap() {
                 console.log(result); // Process the result as needed
                 var path = result.path; // Assuming the path is an array of node IDs
                 if (path) {
+                    var nodeCount = path.length;
+                    var nodeCountElement = document.getElementById("node-count");
+                    nodeCountElement.textContent = nodeCount;
                     loadPathAndDrawPolylines(map, path); // Call the function to draw the path
                 } else {
                     console.error("Error: Path data not found in response.");
